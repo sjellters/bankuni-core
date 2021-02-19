@@ -34,8 +34,8 @@ public class TransferServiceAspect {
         AtomicReference<Account> receiverAccount = new AtomicReference<>(
                 accountRepository.findAccountByOwner(returnedTransfer.getReceiver()));
 
-        senderAccount.get().setTransferAvailable(false);
-        receiverAccount.get().setTransferAvailable(false);
+        senderAccount.get().setTransferAvailable(true);
+        receiverAccount.get().setTransferAvailable(true);
 
         accountRepository.save(senderAccount.get());
         accountRepository.save(receiverAccount.get());
