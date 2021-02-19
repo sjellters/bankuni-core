@@ -5,7 +5,7 @@ import com.uni.bankuni.domain.Transfer;
 import com.uni.bankuni.domain.TransferRequest;
 import com.uni.bankuni.domain.User;
 import com.uni.bankuni.exception.InsufficientAmountException;
-import com.uni.bankuni.exception.TransferNotFoundException;
+import com.uni.bankuni.exception.TransferNotValidException;
 import com.uni.bankuni.exception.UserNotFoundException;
 import com.uni.bankuni.repository.AccountRepository;
 import com.uni.bankuni.repository.TransferRepository;
@@ -49,7 +49,7 @@ public class TransferService {
         } else {
             Account account = accountRepository.findAccountByOwner(transferRequest.getSender());
 
-            if (account.getAmount() < transferRequest.getAmount()) {
+            if (account.getAmount() > 0 && account.getAmount() < transferRequest.getAmount()) {
                 throw new InsufficientAmountException();
             } else {
                 Transfer transfer = new Transfer();
@@ -69,10 +69,10 @@ public class TransferService {
         }
     }
 
-    public void executeTransfer(String transferId) throws InsufficientAmountException, TransferNotFoundException {
+    public void executeTransfer(String transferId) throws InsufficientAmountException, TransferNotValidException {
         Transfer transfer = transferRepository.findById(transferId).orElse(null);
 
-        if(transfer != null) {
+        if(transfer != null && transfer.isInProgress()) {
             Account senderAccount = accountRepository.findAccountByOwner(transfer.getSender());
             Account receiverAccount = accountRepository.findAccountByOwner(transfer.getReceiver());
 
@@ -85,16 +85,17 @@ public class TransferService {
                 accountRepository.save(senderAccount);
 
                 receiverAccount.setTransferAvailable(true);
-                receiverAccount.setAmount(senderAccount.getAmount() + transfer.getAmount());
+                receiverAccount.setAmount(receiverAccount.getAmount() + transfer.getAmount());
 
                 accountRepository.save(receiverAccount);
 
                 transfer.setEndDate(new Date());
+                transfer.setInProgress(false);
 
                 transferRepository.save(transfer);
             }
         } else {
-            throw new TransferNotFoundException();
+            throw new TransferNotValidException();
         }
     }
 }

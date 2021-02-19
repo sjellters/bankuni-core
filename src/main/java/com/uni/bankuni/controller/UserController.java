@@ -29,7 +29,6 @@ public class UserController {
                             "El usuario fue registrado con éxito",
                             request.getContextPath()));
         } catch (UserAlreadyExistsException e) {
-            e.printStackTrace();
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ResponseBody.internalServerError(

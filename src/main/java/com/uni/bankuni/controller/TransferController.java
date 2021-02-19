@@ -3,7 +3,7 @@ package com.uni.bankuni.controller;
 import com.uni.bankuni.domain.ResponseBody;
 import com.uni.bankuni.domain.TransferRequest;
 import com.uni.bankuni.exception.InsufficientAmountException;
-import com.uni.bankuni.exception.TransferNotFoundException;
+import com.uni.bankuni.exception.TransferNotValidException;
 import com.uni.bankuni.exception.UserNotFoundException;
 import com.uni.bankuni.service.TransferService;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ public class TransferController {
     }
 
     @PostMapping("/verifyTransfer")
-    public ResponseEntity<?> verifyTransfer(HttpServletRequest request, TransferRequest transferRequest) {
+    public ResponseEntity<?> verifyTransfer(HttpServletRequest request,@RequestBody TransferRequest transferRequest) {
         try {
             return ResponseEntity.status(HttpStatus.OK).body(ResponseBody.ok(
                     transferService.verifyTransfer(transferRequest), request.getContextPath()));
@@ -51,9 +51,9 @@ public class TransferController {
         } catch (InsufficientAmountException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseBody.badRequest(
                     "El monto ingresado excede la cantidad disponible", request.getContextPath()));
-        } catch (TransferNotFoundException e) {
+        } catch (TransferNotValidException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ResponseBody.notFound(
-                    "La transferencia solicitada no se encuentra en el registro",
+                    "La transferencia solicitada no es válida",
                     request.getContextPath()));
         }
     }
