@@ -2,6 +2,7 @@ package com.uni.bankuni.aspect;
 
 import com.uni.bankuni.domain.Account;
 import com.uni.bankuni.domain.Transfer;
+import com.uni.bankuni.exception.TransferNotValidException;
 import com.uni.bankuni.repository.AccountRepository;
 import com.uni.bankuni.repository.TransferRepository;
 import lombok.RequiredArgsConstructor;
@@ -86,6 +87,8 @@ public class TransferServiceAspect {
 
                 pjp.proceed();
             }
+        } else {
+            throw new TransferNotValidException();
         }
 
         return null;
