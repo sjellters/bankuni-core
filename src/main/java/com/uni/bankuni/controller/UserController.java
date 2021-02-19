@@ -7,10 +7,7 @@ import com.uni.bankuni.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -38,6 +35,24 @@ public class UserController {
                     .body(ResponseBody.internalServerError(
                             "Ya existe un usuario registrado con este email",
                             request.getContextPath()));
+        }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getUser(HttpServletRequest request, @PathVariable("id") String userId) {
+        User user = userService.getUser(userId);
+
+        if (user != null) {
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(ResponseBody.ok(user, request.getContextPath()));
+        } else {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ResponseBody.notFound(
+                            "No se encontró ningún usuario asociado a este id",
+                            request.getContextPath()
+                    ));
         }
     }
 }

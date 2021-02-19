@@ -57,6 +57,15 @@ public class ResponseBody<T> {
                 .build();
     }
 
+    public static ResponseBody<Object> notFound(String errorMessage, String path) {
+        return ResponseBody.builder()
+                .status(HttpStatus.NOT_FOUND.value())
+                .error(HttpStatus.NOT_FOUND.getReasonPhrase())
+                .message(new MessageResult<>(errorMessage))
+                .path(path)
+                .build();
+    }
+
     public static ResponseBody<Object> internalServerError(String errorMessage, String path) {
         return ResponseBody.builder()
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())

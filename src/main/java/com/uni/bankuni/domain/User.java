@@ -23,6 +23,5 @@ public class User {
     private String password;
 
     private String names;
-    private String firstLastName;
-    private String secondLastName;
+    private String lastName;
 }
