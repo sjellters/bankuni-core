@@ -5,13 +5,17 @@ import com.uni.bankuni.domain.Transfer;
 import com.uni.bankuni.repository.AccountRepository;
 import com.uni.bankuni.repository.TransferRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.concurrent.atomic.AtomicReference;
 
+@Log4j2
 @Aspect
 @Configuration
 @RequiredArgsConstructor
@@ -19,6 +23,40 @@ public class TransferServiceAspect {
 
     private final TransferRepository transferRepository;
     private final AccountRepository accountRepository;
+
+//    @AfterReturning(pointcut = "execution(* com.uni.bankuni.service.TransferService.verifyTransfer(..))",
+//            returning = "returnedTransfer")
+//    public void afterReturnedTransfer(JoinPoint joinPoint, Transfer returnedTransfer) {
+//        Account senderAccount = accountRepository.findAccountByOwner(returnedTransfer.getSender());
+//        Account receiverAccount = accountRepository.findAccountByOwner(returnedTransfer.getReceiver());
+//
+//        senderAccount.setTransferAvailable(false);
+//        receiverAccount.setTransferAvailable(false);
+//
+//        accountRepository.save(senderAccount);
+//        accountRepository.save(receiverAccount);
+//
+//        try {
+//            Thread.sleep(30000);
+//        } catch (InterruptedException e) {
+//            log.error(e.getMessage());
+//        }
+//
+//        Transfer updatedTransfer = transferRepository.findById(returnedTransfer.getId()).orElse(null);
+//
+//        if (updatedTransfer != null && updatedTransfer.isInProgress()) {
+//            senderAccount = accountRepository.findAccountByOwner(returnedTransfer.getSender());
+//            receiverAccount = accountRepository.findAccountByOwner(returnedTransfer.getReceiver());
+//
+//            senderAccount.setTransferAvailable(true);
+//            receiverAccount.setTransferAvailable(true);
+//
+//            accountRepository.save(senderAccount);
+//            accountRepository.save(receiverAccount);
+//
+//            transferRepository.removeById(updatedTransfer.getId());
+//        }
+//    }
 
     @Around(value = "execution(* com.uni.bankuni.service.TransferService.executeTransfer(String)) && args(transferId)",
             argNames = "pjp,transferId")
