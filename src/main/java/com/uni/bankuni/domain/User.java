@@ -13,7 +13,6 @@ import javax.validation.constraints.Email;
 public class User {
 
     @Id
-    @JsonIgnore
     private String id;
 
     @Email

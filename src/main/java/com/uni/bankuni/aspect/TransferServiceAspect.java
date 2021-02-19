@@ -6,7 +6,6 @@ import com.uni.bankuni.repository.AccountRepository;
 import com.uni.bankuni.repository.TransferRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Around;
@@ -28,9 +27,11 @@ public class TransferServiceAspect {
 
     @AfterReturning(pointcut = "execution(* com.uni.bankuni.service.TransferService.verifyTransfer(..))",
             returning = "returnedTransfer")
-    public void afterReturnedTransfer(JoinPoint joinPoint, Transfer returnedTransfer) {
-        AtomicReference<Account> senderAccount = new AtomicReference<>(accountRepository.findAccountByOwner(returnedTransfer.getSender()));
-        AtomicReference<Account> receiverAccount = new AtomicReference<>(accountRepository.findAccountByOwner(returnedTransfer.getReceiver()));
+    public void afterReturnedTransfer(Transfer returnedTransfer) {
+        AtomicReference<Account> senderAccount = new AtomicReference<>(
+                accountRepository.findAccountByOwner(returnedTransfer.getSender()));
+        AtomicReference<Account> receiverAccount = new AtomicReference<>(
+                accountRepository.findAccountByOwner(returnedTransfer.getReceiver()));
 
         senderAccount.get().setTransferAvailable(false);
         receiverAccount.get().setTransferAvailable(false);
