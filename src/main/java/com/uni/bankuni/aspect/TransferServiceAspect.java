@@ -13,6 +13,8 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Log4j2
@@ -24,39 +26,42 @@ public class TransferServiceAspect {
     private final TransferRepository transferRepository;
     private final AccountRepository accountRepository;
 
-//    @AfterReturning(pointcut = "execution(* com.uni.bankuni.service.TransferService.verifyTransfer(..))",
-//            returning = "returnedTransfer")
-//    public void afterReturnedTransfer(JoinPoint joinPoint, Transfer returnedTransfer) {
-//        Account senderAccount = accountRepository.findAccountByOwner(returnedTransfer.getSender());
-//        Account receiverAccount = accountRepository.findAccountByOwner(returnedTransfer.getReceiver());
-//
-//        senderAccount.setTransferAvailable(false);
-//        receiverAccount.setTransferAvailable(false);
-//
-//        accountRepository.save(senderAccount);
-//        accountRepository.save(receiverAccount);
-//
-//        try {
-//            Thread.sleep(30000);
-//        } catch (InterruptedException e) {
-//            log.error(e.getMessage());
-//        }
-//
-//        Transfer updatedTransfer = transferRepository.findById(returnedTransfer.getId()).orElse(null);
-//
-//        if (updatedTransfer != null && updatedTransfer.isInProgress()) {
-//            senderAccount = accountRepository.findAccountByOwner(returnedTransfer.getSender());
-//            receiverAccount = accountRepository.findAccountByOwner(returnedTransfer.getReceiver());
-//
-//            senderAccount.setTransferAvailable(true);
-//            receiverAccount.setTransferAvailable(true);
-//
-//            accountRepository.save(senderAccount);
-//            accountRepository.save(receiverAccount);
-//
-//            transferRepository.removeById(updatedTransfer.getId());
-//        }
-//    }
+    @AfterReturning(pointcut = "execution(* com.uni.bankuni.service.TransferService.verifyTransfer(..))",
+            returning = "returnedTransfer")
+    public void afterReturnedTransfer(JoinPoint joinPoint, Transfer returnedTransfer) {
+        AtomicReference<Account> senderAccount = new AtomicReference<>(accountRepository.findAccountByOwner(returnedTransfer.getSender()));
+        AtomicReference<Account> receiverAccount = new AtomicReference<>(accountRepository.findAccountByOwner(returnedTransfer.getReceiver()));
+
+        senderAccount.get().setTransferAvailable(false);
+        receiverAccount.get().setTransferAvailable(false);
+
+        accountRepository.save(senderAccount.get());
+        accountRepository.save(receiverAccount.get());
+
+        ExecutorService executorService = Executors.newFixedThreadPool(1);
+        executorService.execute(() -> {
+            try {
+                Thread.sleep(30000);
+            } catch (InterruptedException e) {
+                log.error(e.getMessage());
+            }
+
+            Transfer updatedTransfer = transferRepository.findById(returnedTransfer.getId()).orElse(null);
+
+            if (updatedTransfer != null && updatedTransfer.isInProgress()) {
+                senderAccount.set(accountRepository.findAccountByOwner(returnedTransfer.getSender()));
+                receiverAccount.set(accountRepository.findAccountByOwner(returnedTransfer.getReceiver()));
+
+                senderAccount.get().setTransferAvailable(true);
+                receiverAccount.get().setTransferAvailable(true);
+
+                accountRepository.save(senderAccount.get());
+                accountRepository.save(receiverAccount.get());
+
+                transferRepository.removeById(updatedTransfer.getId());
+            }
+        });
+    }
 
     @Around(value = "execution(* com.uni.bankuni.service.TransferService.executeTransfer(String)) && args(transferId)",
             argNames = "pjp,transferId")
