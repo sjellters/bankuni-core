@@ -34,8 +34,10 @@ public class TransferServiceAspect {
         AtomicReference<Account> receiverAccount = new AtomicReference<>(
                 accountRepository.findAccountByOwner(returnedTransfer.getReceiver()));
 
-        senderAccount.get().setTransferAvailable(true);
-        receiverAccount.get().setTransferAvailable(true);
+        senderAccount.get().setTransferAvailable(false);
+        senderAccount.get().setBlockedBy(returnedTransfer.getId());
+        receiverAccount.get().setTransferAvailable(false);
+        receiverAccount.get().setBlockedBy(returnedTransfer.getId());
 
         accountRepository.save(senderAccount.get());
         accountRepository.save(receiverAccount.get());
@@ -76,17 +78,14 @@ public class TransferServiceAspect {
             AtomicReference<Account> receiverAccount = new AtomicReference<>(
                     accountRepository.findAccountByOwner(transfer.getReceiver()));
 
-            if (senderAccount.get().isTransferAvailable() && receiverAccount.get().isTransferAvailable()) {
-                pjp.proceed();
-            } else {
+            if (!senderAccount.get().getBlockedBy().equals(transfer.getId())) {
                 while (!senderAccount.get().isTransferAvailable() || !receiverAccount.get().isTransferAvailable()) {
                     senderAccount.set(accountRepository.findAccountByOwner(transfer.getSender()));
                     receiverAccount.set(accountRepository.findAccountByOwner(transfer.getReceiver()));
                     Thread.sleep(2000);
                 }
-
-                pjp.proceed();
             }
+            pjp.proceed();
         } else {
             throw new TransferNotValidException();
         }
