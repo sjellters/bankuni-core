@@ -14,4 +14,5 @@ public class Account {
     private String owner;
     private double amount;
     private boolean transferAvailable;
+    private String blockedBy;
 }

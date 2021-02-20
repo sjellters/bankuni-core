@@ -1,7 +1,6 @@
 package com.uni.bankuni.domain;
 
 import lombok.Data;
-import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -21,4 +20,5 @@ public class Transfer {
     private double amount;
     private String sender;
     private String receiver;
+    private boolean inProgress;
 }
